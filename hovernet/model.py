@@ -18,3 +18,126 @@ model = smp.Unet(encoder_name="resnet34",
                  in_channels=3,
                  classes=1
                  )
+
+
+class _BNRelu(nn.Module):
+    def __init__(self, num_features):
+        super(_BNRelu, self).__init__()
+        self.bn = nn.BatchNorm2d(num_features=num_features)
+
+    def forward(self, inputs):
+        return F.relu(self.bn(inputs), inplace=True)
+
+
+class _ResidualUnit(nn.Module):
+    def __init__(self, in_channels):
+        super(_ResidualUnit, self).__init__()
+        self.bn_relu = _BNRelu(in_channels)
+        self.conv1 = nn.Conv2d(in_channels, in_channels/4,
+                               kernel_size=1)
+        self.conv2 = nn.Conv2d(in_channels/4, in_channels/4,
+                               kernel_size=3, padding=1)
+        self.conv3 = nn.Conv2d(in_channels/4, in_channels,
+                               kernel_size=1)
+
+    def forward(self, inputs):
+        x = self.bn_relu(self.conv1(inputs))
+        x = self.bn_relu(self.conv2(x))
+        x = self.bn_relu(self.conv3(x))
+
+        return x + inputs
+
+
+class _DenseUnit(nn.Module):
+    def __init__(self, in_channels):
+        super(_DenseUnit, self).__init__()
+        self.bn_relu = _BNRelu(in_channels)
+        self.conv1 = nn.Conv2d(in_channels, 128, kernel_size=1)
+        self.conv2 = nn.Conv2d(128, 32, kernel_size=5)
+
+    def forward(self, inputs):
+        x = self.bn_relu(self.conv1(inputs))
+        x = self.bn_relu(self.conv2(x))
+
+        return torch.cat([x, inputs])
+
+
+class _Encoder(nn.Module):
+    def __init__(self, in_channels):
+        super(_Encoder, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels, in_channels,
+                               kernel_size=7, padding=3)
+        self.residual_block1 = nn.Sequential(
+            (_ResidualUnit(in_channels, 256, stride=1), ) * 3
+        )
+        self.residual_block2 = nn.Sequential(
+            (_ResidualUnit(256, 512, stride=2), ) * 4
+        )
+        self.residual_block3 = nn.Sequential(
+            (_ResidualUnit(512, 1024, stride=4), ) * 6
+        )
+        self.residual_block4 = nn.Sequential(
+            (_ResidualUnit(1024, 2048, stride=8), ) * 3
+        )
+        self.conv2 = nn.Conv2d(2048, 2048, kernel_size=1)
+
+    def forward(self, inputs):
+        x = self.conv1(inputs)
+        x = self.residual_block1(x)
+        x = self.residual_block2(x)
+        x = self.residual_block3(x)
+        x = self.residual_block4(x)
+        x = self.residual_block5(x)
+        x = self.conv2(x)
+
+        return x
+
+
+class _Decoder(nn.Module):
+    def __init__(self, input_shape, in_channels):
+        super(_Decoder, self).__init__()
+        self.upsample = nn.Upsample(size=input_shape)
+        self.conv1 = nn.Conv2d(in_channels, in_channels,
+                               kernel_size=5)
+        self.dense_block1 = nn.Sequential(
+            (_DenseUnit(in_channels), ) * 8
+        )
+        self.dense_block2 = nn.Sequential(
+            (_DenseUnit(in_channels), ) * 4
+        )
+        self.conv2 = nn.Conv2d(in_channels, in_channels,
+                               kernel_size=1)
+        self.conv3 = nn.Conv2d(in_channels, in_channels,
+                               kernel_size=5)
+        self.conv4 = nn.Conv2d(in_channels, in_channels,
+                               kernel_size=1)
+        self.conv5 = nn.Conv2d(in_channels, in_channels,
+                               kernel_size=5)
+        self.conv6 = nn.Conv2d(in_channels, in_channels,
+                               kernel_size=1)
+
+    def forward(self, inputs):
+        x = self.upsample(inputs)
+        x = self.conv1(x)
+        x = self.dense_block1(x)
+        x = self.conv3(self.upsample(self.conv2(x)))
+        x = self.dense_block2(x)
+        x = self.conv5(self.upsample(self.conv5(x)))
+        x = self.conv6(x)
+
+        return x
+
+
+class HoverNet(nn.Module):
+    def __init__(self, input_shape, in_channels):
+        super(HoverNet, self).__init__()
+        self.encoder = _Encoder(in_channels)
+        self.decoder_np = _Decoder(input_shape, in_channels)
+        self.decoder_hv = _Decoder(input_shape, in_channels)
+
+    def forward(self, inputs):
+        x = self.encoder(inputs)
+        out_np = self.decoder_np(x)
+        out_hv = self.decoder_hv(x)
+
+        return out_np, out_hv
