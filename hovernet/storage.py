@@ -6,13 +6,9 @@ from typing import Dict, List, Tuple
 import torch
 
 # Local
-from torchseg import utils
-from torchseg import metrics
+from hovernet import utils
+from hovernet import metrics
 
-
-# TODO: Move to an event system
-# TODO: Have a better way to add metrics & associated functions
-# See: https://stackoverflow.com/questions/1092531/event-system-in-python/
 
 class Meter(object):
     def __init__(self,

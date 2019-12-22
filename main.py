@@ -12,8 +12,8 @@ import torch
 import coloredlogs
 
 # Local
-from torchseg.model import model
-from torchseg.trainer import Trainer
+from hovernet.model import model
+from hovernet.trainer import Trainer
 
 _DIRNAME = os.path.dirname(__file__)
 
@@ -66,7 +66,7 @@ def cli():
     # Pre-training based
     parser.add_argument('-c', '--checkpoint', dest='checkpoint_name', type=str,
                         nargs="?", default=None, const="model.pth",
-                        help='Name of checkpoint file in torchseg/checkpoints/')
+                        help='Name of checkpoint file in hovernet/checkpoints/')
     parser.add_argument('-s', '--save', dest='save_fname', type=str,
                         default="model-saved.pth",
                         help="File in checkpoints/ to save state")
@@ -101,7 +101,7 @@ def cli():
 
     # Some checks on provided args
     if parser_args.checkpoint_name is not None:
-        _checkpoint_path = os.path.join(_DIRNAME, "torchseg", "checkpoints",
+        _checkpoint_path = os.path.join(_DIRNAME, "hovernet", "checkpoints",
                                         parser_args.checkpoint_name)
         if not os.path.exists(_checkpoint_path):
             raise FileNotFoundError("The checkpoints file at {} was not found."
@@ -181,7 +181,7 @@ if __name__ == "__main__":
         logger.info("******** Saving state before exiting ********")
         # Save state if possible
         try:
-            torch.save(state, os.path.join(_DIRNAME, "torchseg",
+            torch.save(state, os.path.join(_DIRNAME, "hovernet",
                                            "checkpoints", args.save_fname))
         except FileNotFoundError as e:
             logger.exception(f"Error while saving checkpoint", exc_info=True)

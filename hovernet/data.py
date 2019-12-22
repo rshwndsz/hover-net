@@ -14,10 +14,11 @@ from albumentations.pytorch import ToTensorV2
 
 # Root folder of dataset
 _DIRNAME: str = os.path.dirname(__file__)
-DATA_FOLDER: str = os.path.join(_DIRNAME, "dataset/raw/")
+DATA_FOLDER: str = os.path.join("/Users/Russel/myProjects/"
+                                "pytorch-segmentation-template/"
+                                "torchseg/dataset/raw")
 
 
-# TODO: Generalize binary segmentation to multiclass segmentation
 class OrganDataset(Dataset):
     def __init__(self,
                  data_folder: str,

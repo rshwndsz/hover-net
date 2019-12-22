@@ -20,8 +20,8 @@ from albumentations.pytorch import ToTensorV2
 import coloredlogs
 
 # Local
-from torchseg.data import DATA_FOLDER
-from torchseg.model import model
+from hovernet.data import DATA_FOLDER
+from hovernet.model import model
 
 _DIRNAME = os.path.dirname(__file__)
 
@@ -122,10 +122,10 @@ class TestDataset(Dataset):
 
 
 def cli():
-    parser = argparse.ArgumentParser(description='Torchseg')
+    parser = argparse.ArgumentParser(description='Hovernet')
     parser.add_argument('-c', '--checkpoint', dest='checkpoint_name', type=str,
                         default="model-saved.pth",
-                        help='Name of checkpoint file in torchseg/checkpoints/')
+                        help='Name of checkpoint file in hovernet/checkpoints/')
     parser.add_argument('--image_size', dest='image_size', type=int,
                         default=256, help='Resize images to size: s*s')
     parser.add_argument('--in_channels', dest='in_channels', type=int,
@@ -135,7 +135,7 @@ def cli():
     parser_args = parser.parse_args()
 
     # Validate provided args
-    test_checkpoint_path: str = os.path.join("torchseg", "checkpoints",
+    test_checkpoint_path: str = os.path.join("hovernet", "checkpoints",
                                              parser_args.checkpoint_name)
     if not os.path.exists(test_checkpoint_path):
         raise FileNotFoundError("The checkpoints file at {} was not found. "
@@ -177,7 +177,7 @@ if __name__ == "__main__":
     # Switch model over to evaluation model
     model.eval()
     # Load state from checkpoint
-    checkpoint_path = os.path.join(_DIRNAME, "torchseg",
+    checkpoint_path = os.path.join(_DIRNAME, "hovernet",
                                    "checkpoints", args.checkpoint_name)
     state = torch.load(checkpoint_path)
     model.load_state_dict(state["state_dict"])

@@ -1,18 +1,13 @@
 # Python STL
 import logging
 from typing import List
-# Data Science
-import numpy as np
 # PyTorch
 import torch
 
 # Local
-from torchseg import utils
+from hovernet import utils
 
 logger = logging.getLogger(__name__)
-
-# TODO: Generalize to multiclass segmentation
-# TODO: Add tests to test integrity
 
 
 def dice_score(probs: torch.Tensor,
@@ -58,7 +53,6 @@ def dice_score(probs: torch.Tensor,
     return utils.nanmean(dice)
 
 
-# TODO: Vectorize
 def true_positive(preds: torch.Tensor,
                   targets: torch.Tensor,
                   num_classes: int = 2) -> torch.Tensor:
@@ -85,7 +79,6 @@ def true_positive(preds: torch.Tensor,
     return torch.tensor(out)
 
 
-# TODO: Vectorize
 def true_negative(preds: torch.Tensor,
                   targets: torch.Tensor,
                   num_classes: int) -> torch.Tensor:
@@ -112,7 +105,6 @@ def true_negative(preds: torch.Tensor,
     return torch.tensor(out)
 
 
-# TODO: Vectorize
 def false_positive(preds: torch.Tensor,
                    targets: torch.Tensor,
                    num_classes: int) -> torch.Tensor:
@@ -139,7 +131,6 @@ def false_positive(preds: torch.Tensor,
     return torch.tensor(out)
 
 
-# TODO: Vectorize
 def false_negative(preds: torch.Tensor,
                    targets: torch.Tensor,
                    num_classes: int) -> torch.Tensor:

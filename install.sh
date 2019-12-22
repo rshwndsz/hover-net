@@ -3,6 +3,6 @@ wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download
 
 # -j => Don't create a directory named dataset
 # -d => Destination folder
-unzip dataset.zip -j -d torchseg/dataset/raw/
+unzip dataset.zip -j -d hovernet/dataset/raw/
 
 rm dataset.zip

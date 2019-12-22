@@ -4,7 +4,7 @@ import torch.nn as nn
 from torch.nn import functional as F
 
 
-class DiceLoss(nn.Module):
+class DiceCoeff(nn.Module):
     # See: https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient
     def forward(self,
                 logits: torch.Tensor, target: torch.Tensor,
@@ -43,12 +43,12 @@ class MixedLoss(nn.Module):
         super().__init__()
         self.alpha = alpha
         self.focal_loss = FocalLoss(gamma)
-        self.dice_loss = DiceLoss()
+        self.dice_coeff = DiceCoeff()
 
     def forward(self,
                 logits: torch.Tensor,
                 target: torch.Tensor) -> torch.Tensor:
         loss = (self.alpha * self.focal_loss(logits, target) -
-                torch.log(self.dice_loss(logits, target)))
+                torch.log(self.dice_coeff(logits, target)))
 
         return loss.mean()

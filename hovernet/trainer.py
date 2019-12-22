@@ -12,7 +12,7 @@ import torch.backends.cudnn as cudnn
 from .loss import MixedLoss
 from .data import provider
 from .data import DATA_FOLDER
-from torchseg.storage import Meter
+from hovernet.storage import Meter
 
 _DIRNAME = os.path.dirname(__file__)
 
@@ -248,8 +248,6 @@ class Trainer(object):
 
                 # Step the scheduler based on validation loss
                 self.scheduler.step(val_loss)
-
-                # TODO: Add EarlyStopping
 
                 # Save model if val loss is lesser than anything seen before
                 if val_loss < self.best_loss:

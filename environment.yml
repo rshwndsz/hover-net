@@ -1,5 +1,8 @@
-name: torchseg-env
+name: hovernet-env
 dependencies:
   - python=3.6
   - numpy
   - matplotlib
+  - Pip:
+      - coloredlogs
+      - segmentation-models-pytorch
