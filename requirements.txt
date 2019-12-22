@@ -1,0 +1,2 @@
+-e git+https://github.com/qubvel/segmentation_models.pytorch#egg=segmentation-models-pytorch
+coloredlogs==10.0
