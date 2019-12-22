@@ -30,15 +30,16 @@ class _BNRelu(nn.Module):
 
 
 class _ResidualUnit(nn.Module):
-    def __init__(self, in_channels):
+    def __init__(self, in_channels, out_channels, stride):
         super(_ResidualUnit, self).__init__()
         self.bn_relu = _BNRelu(in_channels)
-        self.conv1 = nn.Conv2d(in_channels, in_channels/4,
-                               kernel_size=1)
-        self.conv2 = nn.Conv2d(in_channels/4, in_channels/4,
-                               kernel_size=3, padding=1)
-        self.conv3 = nn.Conv2d(in_channels/4, in_channels,
-                               kernel_size=1)
+        self.conv1 = nn.Conv2d(in_channels, out_channels/4,
+                               kernel_size=1, stride=stride)
+        self.conv2 = nn.Conv2d(out_channels/4, out_channels/4,
+                               kernel_size=3, stride=stride,
+                               padding=1)
+        self.conv3 = nn.Conv2d(out_channels/4, in_channels,
+                               kernel_size=1, stride=stride)
 
     def forward(self, inputs):
         x = self.bn_relu(self.conv1(inputs))
