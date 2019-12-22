@@ -80,7 +80,7 @@ class _Encoder(nn.Module):
         self.residual_block4 = nn.Sequential(
             (_ResidualUnit(1024, 2048, stride=8), ) * 3
         )
-        self.conv2 = nn.Conv2d(2048, 2048, kernel_size=1)
+        self.conv2 = nn.Conv2d(2048, 1024, kernel_size=1)
 
     def forward(self, inputs):
         x = self.conv1(inputs)
@@ -98,23 +98,23 @@ class _Decoder(nn.Module):
     def __init__(self, input_shape, in_channels):
         super(_Decoder, self).__init__()
         self.upsample = nn.Upsample(size=input_shape)
-        self.conv1 = nn.Conv2d(in_channels, in_channels,
+        self.conv1 = nn.Conv2d(in_channels, 256,
                                kernel_size=5)
         self.dense_block1 = nn.Sequential(
             (_DenseUnit(in_channels), ) * 8
         )
+        self.conv2 = nn.Conv2d(32, 512,
+                               kernel_size=1, stride=1)
+        self.conv3 = nn.Conv2d(512, 128,
+                               kernel_size=5)
         self.dense_block2 = nn.Sequential(
             (_DenseUnit(in_channels), ) * 4
         )
-        self.conv2 = nn.Conv2d(in_channels, in_channels,
+        self.conv4 = nn.Conv2d(32, 128,
                                kernel_size=1)
-        self.conv3 = nn.Conv2d(in_channels, in_channels,
+        self.conv5 = nn.Conv2d(128, 256,
                                kernel_size=5)
-        self.conv4 = nn.Conv2d(in_channels, in_channels,
-                               kernel_size=1)
-        self.conv5 = nn.Conv2d(in_channels, in_channels,
-                               kernel_size=5)
-        self.conv6 = nn.Conv2d(in_channels, in_channels,
+        self.conv6 = nn.Conv2d(256, 64,
                                kernel_size=1)
 
     def forward(self, inputs):
@@ -123,7 +123,7 @@ class _Decoder(nn.Module):
         x = self.dense_block1(x)
         x = self.conv3(self.upsample(self.conv2(x)))
         x = self.dense_block2(x)
-        x = self.conv5(self.upsample(self.conv5(x)))
+        x = self.conv5(self.upsample(self.conv4(x)))
         x = self.conv6(x)
 
         return x
