@@ -1,3 +1,8 @@
+# Python STL
+from typing import Tuple
+# Data Science
+import numpy as np
+# PyTorch
 import torch
 
 
@@ -44,3 +49,21 @@ def predict(probs: torch.Tensor,
         Contains only 0, 1 and has the same shape as `probs`
     """
     return (probs > threshold).float()
+
+
+def get_sobel_filter(size: int) -> Tuple[torch.Tensor, torch.Tensor]:
+    assert size % 2 == 1, "Size must be odd"
+
+    h_range = torch.arange(-size//2 + 1, size//2 + 1, dtype=torch.float32)
+    v_range = torch.arange(-size//2 + 1, size//2 + 1, dtype=torch.float32)
+    h, v = torch.meshgrid([h_range, v_range])
+    h, v = h.transpose(0, 1), v.transpose(0, 1)
+
+    kernel_h = h / (h*h + v*v + 1e-15)
+    kernel_v = v / (h*h + v*v + 1e-15)
+
+    return kernel_h, kernel_v
+
+
+def get_gradient_hv(logits, h_ch, v_ch):
+    pass
