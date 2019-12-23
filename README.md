@@ -5,7 +5,7 @@
 Start by cloning the repository
 
 ```bash
-git clone https://github.com/rshwndsz/torch-seg.git
+git clone https://github.com/rshwndsz/hover-net.git
 ```
 
 If you don't already have an environment with PyTorch 1.x, it's better to create a new conda environment with Python 3.6+.
@@ -25,7 +25,7 @@ Solving package specifications: .Linking packages ...
 [      COMPLETE      ] |#################################################| 100%
 #
 # To activate this environment, use:
-# $ source activate torchseg-env
+# $ source activate hovernet-env
 #
 # To deactivate this environment, use:
 # $ source deactivate
@@ -35,8 +35,8 @@ Solving package specifications: .Linking packages ...
 Move into your new environment
 
 ```console
-$ source activate torchseg-env
-(torchseg-env) $
+$ source activate hovernet-env
+(hovernet-env) $
 ```
 
 Install PyTorch and the CUDA Toolkit based on your local configuration. Get the command for the installation from [the official website](https://pytorch.org/).
@@ -44,13 +44,13 @@ Install PyTorch and the CUDA Toolkit based on your local configuration. Get the 
 The command for a Linux system with a GPU and CUDA 10.1 installed is given below.
 
 ```console
-(torchseg-env) $ conda install pytorch torchvision cudatoolkit=10.1 -c pytorch
+(hovernet-env) $ conda install pytorch torchvision cudatoolkit=10.1 -c pytorch
 ```
 
 Install packages not available through conda using pip
 
 ```console
-(torchseg-env) $ pip install -r requirements.txt
+(hovernet-env) $ pip install -r requirements.txt
 ```
 
 ## Setup
@@ -58,19 +58,19 @@ Install packages not available through conda using pip
 Get the [Kidney](https://monuseg.grand-challenge.org/Data/) dataset by running the download script
 
 ```console
-(torchseg-env) $ ./install.sh
+(hovernet-env) $ ./install.sh
 ```
 
 or download your own dataset into `dataset/raw/`.
 
-Edit the dataset APIs in `torchseg/data.py` and `test.py` as required.
+Edit the dataset APIs in `hovernet/data.py` and `test.py` as required.
 
 ## Training
 
-To train the model defined in `torchseg/model.py` using default parameters run
+To train the model defined in `hovernet/model.py` using default parameters run
 
 ```console
-(torchseg-env) $ python train.py
+(hovernet-env) $ python train.py
 ```
 
 This trains the model for 10 epochs and saves the best model (based on validation loss) in `checkpoints/model-saved.pth`
@@ -79,7 +79,7 @@ You can specify a lot of parameters as command line arguments.
 To find out which parameters can be provided run
 
 ```console
-(torchseg-env) $ python train.py --help
+(hovernet-env) $ python train.py --help
 ```
 
 ## Testing
@@ -87,5 +87,5 @@ To find out which parameters can be provided run
 To test the model run
 
 ```console
-(torchseg-env) $ python test.py
+(hovernet-env) $ python test.py
 ```
