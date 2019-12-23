@@ -1,6 +1,7 @@
 # PyTorch
 import torch
 from torch import nn
+# noinspection PyPep8Naming
 from torch.nn import functional as F
 
 
@@ -144,16 +145,41 @@ class _Decoder(nn.Module):
         return x
 
 
+class _SegmentationHead(nn.Module):
+    def __init__(self, head):
+        super(_SegmentationHead, self).__init__()
+        assert head in ['np', 'hv'], "Head must be 'np' or 'hv'"
+        self.head = head
+
+        self.bn_relu = _BNRelu(num_features=64)
+        self.conv1 = nn.Conv2d(64, 2, kernel_size=1,
+                               padding=0, stride=1, dilation=1, bias=True)
+
+    def forward(self, inputs):
+        out = self.bn_relu(inputs)
+        out = self.conv1(out)
+        out = F.softmax(out, dim=1) if self.head == 'np' else out
+
+        return out
+
+
 class HoverNet(nn.Module):
     def __init__(self):
         super(HoverNet, self).__init__()
         self.encoder = _Encoder()       # <<< Change: Hardcoded
         self.decoder_np = _Decoder((256, 256), 1024)
         self.decoder_hv = _Decoder((256, 256), 1024)
+        self.head_np = _SegmentationHead(head='np')
+        self.head_hv = _SegmentationHead(head='np')
 
     def forward(self, inputs):
         x = self.encoder(inputs)
         out_np = self.decoder_np(x)
         out_hv = self.decoder_hv(x)
+        out_np = self.head_np(out_np)
+        out_hv = self.head_hv(out_hv)
 
         return out_np, out_hv
+
+
+model = HoverNet()
