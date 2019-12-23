@@ -83,3 +83,16 @@ class _HVBranchLoss(nn.Module):
         # MSE of vertical and horizontal gradients with logits
         loss = F.mse_loss(logits, h_grads) + F.mse_loss(logits, v_grads)
         return loss
+
+
+class HoverLoss(nn.Module):
+    def __init__(self):
+        super(HoverLoss, self).__init__()
+        self.np_loss = _NPBranchLoss()
+        self.hv_loss = _HVBranchLoss()
+
+    def forward(self, np_probs, np_targets,
+                hv_logits, h_grads, v_grads,
+                weights) -> torch.Tensor:
+        loss = self.np_loss * weights[0] + self.hv_loss * weights[1]
+        return loss
