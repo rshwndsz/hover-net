@@ -14,7 +14,8 @@ class _BNRelu(nn.Module):
 
 
 class _ResidualUnit(nn.Module):
-    def __init__(self, in_channels, out_channels, stride, expansion=4, preact=True):
+    def __init__(self, in_channels, out_channels, stride,
+                 expansion=4, preact=True):
         super(_ResidualUnit, self).__init__()
         self.preact = preact
         bottleneck_channels = out_channels // expansion
@@ -25,8 +26,9 @@ class _ResidualUnit(nn.Module):
                                stride=1, padding=0, dilation=1, bias=False)
         self.bn_relu2 = _BNRelu(bottleneck_channels)
 
-        self.conv2 = nn.Conv2d(bottleneck_channels, bottleneck_channels, kernel_size=3,
-                               stride=stride, padding=1, dilation=1, bias=False)
+        self.conv2 = nn.Conv2d(bottleneck_channels, bottleneck_channels,
+                               kernel_size=3, stride=stride, padding=1,
+                               dilation=1, bias=False)
         self.bn_relu3 = _BNRelu(bottleneck_channels)
 
         self.conv3 = nn.Conv2d(bottleneck_channels, out_channels, kernel_size=1,
@@ -34,7 +36,8 @@ class _ResidualUnit(nn.Module):
 
         if in_channels != out_channels:
             self.shortcut = nn.Conv2d(in_channels, out_channels, kernel_size=1,
-                                      stride=stride, padding=0, dilation=1, bias=False)
+                                      stride=stride, padding=0, dilation=1,
+                                      bias=False)
         else:
             self.shortcut = nn.Sequential()
 
@@ -63,7 +66,8 @@ class _DenseUnit(nn.Module):
         out = self.bn_relu1(self.conv1(inputs))
         out = self.bn_relu2(self.conv2(out))
 
-        return torch.cat([out, F.interpolate(inputs, size=out.shape)])
+        return torch.cat([out, F.interpolate(inputs, size=out.shape[2:])],
+                         dim=1)
 
 
 class _Encoder(nn.Module):
@@ -107,20 +111,20 @@ class _Decoder(nn.Module):
         self.input_shape = input_shape
 
         self.conv1 = nn.Conv2d(in_channels, 256, kernel_size=5,
-                               padding=2, stride=1, dilation=1, bias=False)
+                               padding=0, stride=1, dilation=1, bias=False)
         self.dense_block1 = nn.Sequential(
             _DenseUnit(256),
-            *[_DenseUnit(32), ] * 7
+            *[_DenseUnit(256 + 32*i) for i in range(1, 6)]
         )
-        self.conv2 = nn.Conv2d(32, 512, kernel_size=1,
+        self.conv2 = nn.Conv2d(256 + 32*6, 512, kernel_size=1,
                                padding=0, stride=1, dilation=1, bias=False)
         self.conv3 = nn.Conv2d(512, 128, kernel_size=5,
                                bias=False)
         self.dense_block2 = nn.Sequential(
             _DenseUnit(128),
-            *[_DenseUnit(32), ] * 3
+            *[_DenseUnit(128 + 32*i) for i in range(1, 4)]
         )
-        self.conv4 = nn.Conv2d(32, 128, kernel_size=1,
+        self.conv4 = nn.Conv2d(128 + 32*4, 128, kernel_size=1,
                                padding=0, stride=1, dilation=1, bias=False)
         self.conv5 = nn.Conv2d(128, 256, kernel_size=5,
                                padding=2, stride=1, dilation=1, bias=False)
@@ -128,6 +132,7 @@ class _Decoder(nn.Module):
                                padding=0, stride=1, dilation=1, bias=False)
 
     def forward(self, inputs):
+        # TODO: Replace interpolate with 2x2 unpooling
         x = F.interpolate(inputs, size=self.input_shape)
         x = self.conv1(x)
         x = self.dense_block1(x)
@@ -140,11 +145,11 @@ class _Decoder(nn.Module):
 
 
 class HoverNet(nn.Module):
-    def __init__(self, input_shape, in_channels):
+    def __init__(self):
         super(HoverNet, self).__init__()
         self.encoder = _Encoder()       # <<< Change: Hardcoded
-        self.decoder_np = _Decoder(input_shape, 1024)
-        self.decoder_hv = _Decoder(input_shape, 1024)
+        self.decoder_np = _Decoder((256, 256), 1024)
+        self.decoder_hv = _Decoder((256, 256), 1024)
 
     def forward(self, inputs):
         x = self.encoder(inputs)
