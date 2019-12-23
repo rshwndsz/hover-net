@@ -158,7 +158,9 @@ class _SegmentationHead(nn.Module):
     def forward(self, inputs):
         out = self.bn_relu(inputs)
         out = self.conv1(out)
-        out = F.softmax(out, dim=1) if self.head == 'np' else out
+        if self.head == 'np':
+            out = F.softmax(out, dim=1)
+            out = torch.max(out, dim=1)[0].unsqueeze(dim=1)
 
         return out
 
