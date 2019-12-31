@@ -1,9 +1,8 @@
 # Python STL
 from typing import Tuple
-# Data Science
-import numpy as np
 # PyTorch
 import torch
+from torch.nn import functional as F
 
 
 def nanmean(v: torch.Tensor,
@@ -79,6 +78,34 @@ def get_sobel_filter(size: int) -> Tuple[torch.Tensor, torch.Tensor]:
     return kernel_h, kernel_v
 
 
-def get_gradient_hv(logits, h_ch, v_ch):
-    # TODO Finish function
-    pass
+def get_gradient_hv(logits: torch.Tensor,
+                    h_ch: int = 1,
+                    v_ch: int = 0) -> torch.Tensor:
+    """Get horizontal & vertical gradients
+
+    Parameters
+    ----------
+    logits : torch.Tensor
+        Raw logits from HV branch
+    h_ch : int
+        Number of horizontal channels
+    v_ch : int
+        Number of vertical channels
+
+    Returns
+    -------
+    gradients : torch.Tensor
+        concatenated output [dh, dv]
+    """
+    mh, mv = get_sobel_filter(size=5)
+    mh = mh.reshape(shape=(1, 1, 5, 5))
+    mv = mv.reshape(shape=(1, 1, 5, 5))
+
+    hl = logits[..., h_ch].unsqueeze(dim=-1)
+    vl = logits[..., v_ch].unsqueeze(dim=-1)
+
+    dh = F.conv2d(hl, mh, stride=1, padding=2)
+    dv = F.conv2d(vl, mv, stride=1, padding=2)
+
+    out = torch.cat([dh, dv])
+    return out
