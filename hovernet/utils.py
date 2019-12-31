@@ -52,6 +52,20 @@ def predict(probs: torch.Tensor,
 
 
 def get_sobel_filter(size: int) -> Tuple[torch.Tensor, torch.Tensor]:
+    """Get sobel filter of particular size
+
+    Parameters
+    ----------
+    size : int
+        Size of sobel filter
+
+    Returns
+    -------
+    kernel_h : torch.Tensor
+        Horizontal sobel filter of size `size`
+    kernel_v : torch.Tensor
+        Vertical sobel filter of size `size`
+    """
     assert size % 2 == 1, "Size must be odd"
 
     h_range = torch.arange(-size//2 + 1, size//2 + 1, dtype=torch.float32)
@@ -66,4 +80,5 @@ def get_sobel_filter(size: int) -> Tuple[torch.Tensor, torch.Tensor]:
 
 
 def get_gradient_hv(logits, h_ch, v_ch):
+    # TODO Finish function
     pass

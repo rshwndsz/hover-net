@@ -7,6 +7,8 @@ import torch
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
+# Fancy progress bars
+from tqdm import tqdm
 
 # Local
 from .loss import MixedLoss
@@ -14,6 +16,7 @@ from .data import provider
 from .data import DATA_FOLDER
 from hovernet.storage import Meter
 
+# Current directory
 _DIRNAME = os.path.dirname(__file__)
 
 
@@ -103,6 +106,7 @@ class Trainer(object):
         self.net = model
         # <<<< Catch: https://pytorch.org/docs/stable/optim.html
         self.net = self.net.to(self.device)
+        # TODO Replace with HoverLoss
         self.criterion = MixedLoss(9.0, 4.0)
         self.optimizer = optim.Adam(self.net.parameters(),
                                     lr=self.lr)
@@ -154,6 +158,7 @@ class Trainer(object):
         images: torch.Tensor = images.to(self.device)
         masks: torch.Tensor = targets.to(self.device)
         logits: torch.Tensor = self.net(images)
+        # TODO Compute h_grads, v_grads
         loss: torch.Tensor = self.criterion(logits, masks)
         return loss, logits
 
@@ -185,8 +190,7 @@ class Trainer(object):
         # Learning!
         self.optimizer.zero_grad()
 
-        # TODO: Add progress bar
-        for itr, batch in enumerate(dataloader):
+        for itr, batch in tqdm(enumerate(dataloader), total=len(dataloader)):
             # Load images and targets
             images, targets = batch
 

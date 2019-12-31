@@ -35,7 +35,7 @@ class _ResidualUnit(nn.Module):
         self.conv3 = nn.Conv2d(bottleneck_channels, out_channels, kernel_size=1,
                                stride=1, padding=0, dilation=1, bias=False)
 
-        if in_channels != out_channels:
+        if in_channels != out_channels or stride != 1:
             self.shortcut = nn.Conv2d(in_channels, out_channels, kernel_size=1,
                                       stride=stride, padding=0, dilation=1,
                                       bias=False)
@@ -106,6 +106,7 @@ class _Encoder(nn.Module):
         return x
 
 
+# TODO Remove hardcoded layers
 class _Decoder(nn.Module):
     def __init__(self, input_shape, in_channels):
         super(_Decoder, self).__init__()
@@ -172,7 +173,7 @@ class HoverNet(nn.Module):
         self.decoder_np = _Decoder((256, 256), 1024)
         self.decoder_hv = _Decoder((256, 256), 1024)
         self.head_np = _SegmentationHead(head='np')
-        self.head_hv = _SegmentationHead(head='np')
+        self.head_hv = _SegmentationHead(head='hv')
 
     def forward(self, inputs):
         x = self.encoder(inputs)

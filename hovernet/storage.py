@@ -10,6 +10,8 @@ from hovernet import utils
 from hovernet import metrics
 
 
+# TODO Add docs
+# TODO Refactor
 class Meter(object):
     def __init__(self,
                  phases: Tuple[str, ...] = ('train', 'val'),
