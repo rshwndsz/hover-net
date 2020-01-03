@@ -124,7 +124,10 @@ class Trainer(object):
                 phase=phase,
                 batch_size=self.batch_size[phase],
                 num_workers=self.num_workers,
-                cli_args=args
+                args={
+                    "in_channels": args.in_channels,
+                    "image_shape": args.image_shape
+                }
             )
             for phase in self.phases
         }

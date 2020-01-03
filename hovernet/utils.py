@@ -50,8 +50,8 @@ def predict(probs: torch.Tensor,
     return (probs > threshold).float()
 
 
-def get_sobel_filter(size: int) -> Tuple[torch.Tensor, torch.Tensor]:
-    """Get sobel filter of particular size
+def get_sobel_filters(size: int) -> Tuple[torch.Tensor, torch.Tensor]:
+    """Get horizontal and vertical sobel filters
 
     Parameters
     ----------
@@ -60,10 +60,8 @@ def get_sobel_filter(size: int) -> Tuple[torch.Tensor, torch.Tensor]:
 
     Returns
     -------
-    kernel_h : torch.Tensor
-        Horizontal sobel filter of size `size`
-    kernel_v : torch.Tensor
-        Vertical sobel filter of size `size`
+    kernels : Tuple[torch.Tensor, torch.Tensor]
+        Horizontal & vertical sobel filters
     """
     assert size % 2 == 1, "Size must be odd"
 
@@ -80,7 +78,7 @@ def get_sobel_filter(size: int) -> Tuple[torch.Tensor, torch.Tensor]:
 
 def get_gradient_hv(logits: torch.Tensor,
                     h_ch: int = 1,
-                    v_ch: int = 0) -> torch.Tensor:
+                    v_ch: int = 0) -> Tuple[torch.Tensor, torch.Tensor]:
     """Get horizontal & vertical gradients
 
     Parameters
@@ -94,10 +92,10 @@ def get_gradient_hv(logits: torch.Tensor,
 
     Returns
     -------
-    gradients : torch.Tensor
-        concatenated output [dh, dv]
+    gradients : Tuple[torch.Tensor, torch.Tensor]
+        Horizontal and vertical gradients
     """
-    mh, mv = get_sobel_filter(size=5)
+    mh, mv = get_sobel_filters(size=5)
     mh = mh.reshape(shape=(1, 1, 5, 5))
     mv = mv.reshape(shape=(1, 1, 5, 5))
 
@@ -107,5 +105,4 @@ def get_gradient_hv(logits: torch.Tensor,
     dh = F.conv2d(hl, mh, stride=1, padding=2)
     dv = F.conv2d(vl, mv, stride=1, padding=2)
 
-    out = torch.cat([dh, dv])
-    return out
+    return dh, dv

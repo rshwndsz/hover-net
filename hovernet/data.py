@@ -1,7 +1,7 @@
 # Python STL
 import os
 import logging
-from typing import Dict
+from typing import Any, Dict
 # Image Processing
 import cv2
 # PyTorch
@@ -14,16 +14,14 @@ from albumentations.pytorch import ToTensorV2
 
 # Root folder of dataset
 _DIRNAME: str = os.path.dirname(__file__)
-DATA_FOLDER: str = os.path.join("/Users/Russel/myProjects/"
-                                "pytorch-segmentation-template/"
-                                "torchseg/dataset/raw")
+DATA_FOLDER: str = os.path.join(_DIRNAME, "dataset", "raw")
 
 
 class OrganDataset(Dataset):
     def __init__(self,
                  data_folder: str,
                  phase: str,
-                 cli_args,
+                 args: Dict[str, Any],
                  num_classes: int = 2,
                  class_dict: Dict[int, int] = (0, 255),):
         """Create an API for the dataset
@@ -39,8 +37,12 @@ class OrganDataset(Dataset):
             Number of classes (including background)
         class_dict : dict[int, int]
             Dictionary mapping brightness to class indices
-        cli_args
-            Command line arguments provided at the CLI of `main.py`
+        args : Dict[str, Any]
+            Extra arguments
+            in_channels : int
+                Number of input channels
+            image_size : int
+                Final size of output images
         """
 
         logger = logging.getLogger(__name__)
@@ -60,7 +62,7 @@ class OrganDataset(Dataset):
         self.phase = phase
 
         # Data Augmentations and tensor transformations
-        self.transforms = OrganDataset.get_transforms(self.phase, cli_args)
+        self.transforms = OrganDataset.get_transforms(self.phase, args)
 
         # Get names & number of images in root/train or root/val
         _path_to_imgs = os.path.join(self.root, self.phase, "imgs")
@@ -91,7 +93,7 @@ class OrganDataset(Dataset):
         self.class_dict = class_dict
 
         # CLI args
-        self.cli_args = cli_args
+        self.args = args
 
     def __getitem__(self, idx: int):
         # Get image filename
@@ -99,7 +101,7 @@ class OrganDataset(Dataset):
         # Construct path to image from filename
         image_path = os.path.join(self.root, self.phase, "imgs", image_name)
         # Read image with opencv
-        if self.cli_args.in_channels == 1:
+        if self.args['in_channels'] == 1:
             image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
         else:
             image = cv2.imread(image_path)
@@ -139,7 +141,7 @@ class OrganDataset(Dataset):
         return len(self.image_names)
 
     @staticmethod
-    def get_transforms(phase: str, cli_args) -> Dict[str, Compose]:
+    def get_transforms(phase: str, args: Dict[str, Any]) -> Dict[str, Compose]:
         """Get composed albumentations augmentations
 
         Parameters
@@ -147,8 +149,8 @@ class OrganDataset(Dataset):
         phase : str
             Phase of learning
             In ['train', 'val']
-        cli_args
-            Arguments coming all the way from `main.py`
+        args : Dict[str, Any]
+            Extra arguments
 
         Returns
         -------
@@ -156,7 +158,7 @@ class OrganDataset(Dataset):
             Composed list of transforms
         """
         aug_transforms = []
-        im_sz = (cli_args.image_size, cli_args.image_size)
+        im_sz = (args['image_size'], args['image_size'])
 
         if phase == "train":
             # Data augmentation for training only
@@ -208,9 +210,9 @@ class OrganDataset(Dataset):
 
 def provider(data_folder: str,
              phase: str,
-             cli_args,
+             args: Dict[str, Any],
              batch_size: int = 8,
-             num_workers: int = 4,) -> object:
+             num_workers: int = 4, ) -> DataLoader:
     """Return dataloader for the dataset
 
     Parameters
@@ -224,15 +226,15 @@ def provider(data_folder: str,
         Batch size
     num_workers : int
         Number of workers
-    cli_args
-        Command line arguments provided at the CLI of `main.py`
+    args : Dict[str, Any]
+        Extra arguments
 
     Returns
     -------
-    dataloader: torch.utils.data.DataLoader
+    dataloader: DataLoader
         DataLoader for loading data from CPU to GPU
     """
-    image_dataset = OrganDataset(data_folder, phase, cli_args)
+    image_dataset = OrganDataset(data_folder, phase, args)
     logger = logging.getLogger(__name__)
     logger.info(f"Creating {phase} dataloader")
     dataloader = DataLoader(

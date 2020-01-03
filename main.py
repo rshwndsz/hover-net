@@ -15,6 +15,7 @@ import coloredlogs
 from hovernet.model import model
 from hovernet.trainer import Trainer
 
+# Global Constants
 _DIRNAME = os.path.dirname(__file__)
 
 # Colourful 🌈
@@ -48,10 +49,8 @@ C_LOGGING = {
         },
     },
 }
-
 # Load logging configuration (C_LOGGING => colour, LOGGING_CONFIG => plain)
 dictConfig(C_LOGGING)
-
 # Create logger
 logger = logging.getLogger(__name__)
 # Add colour
