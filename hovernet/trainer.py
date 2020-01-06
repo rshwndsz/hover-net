@@ -11,9 +11,10 @@ import torch.backends.cudnn as cudnn
 from tqdm import tqdm
 
 # Local
-from .loss import MixedLoss
+from .loss import HoverLoss
 from .data import provider
 from .data import DATA_FOLDER
+import hovernet.utils as utils
 from hovernet.storage import Meter
 
 # Current directory
@@ -106,8 +107,7 @@ class Trainer(object):
         self.net = model
         # <<<< Catch: https://pytorch.org/docs/stable/optim.html
         self.net = self.net.to(self.device)
-        # TODO Replace with HoverLoss
-        self.criterion = MixedLoss(9.0, 4.0)
+        self.criterion = HoverLoss()
         self.optimizer = optim.Adam(self.net.parameters(),
                                     lr=self.lr)
         self.scheduler = ReduceLROnPlateau(self.optimizer, mode="min",
@@ -139,7 +139,7 @@ class Trainer(object):
 
     def forward(self,
                 images: torch.Tensor,
-                targets: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+                targets: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Forward pass
 
         Parameters
@@ -153,17 +153,23 @@ class Trainer(object):
         -------
         loss: torch.Tensor
             Loss from one forward pass
-        logits: torch.Tensor
-            Raw output of the NN, without any activation function
-            in the last layer
+        np_probs: torch.Tensor
+            Probabilities from NP branch
+        hv_logits: torch.Tensor
+            Logits from HV branch
         """
 
         images: torch.Tensor = images.to(self.device)
-        masks: torch.Tensor = targets.to(self.device)
-        logits: torch.Tensor = self.net(images)
-        # TODO Compute h_grads, v_grads
-        loss: torch.Tensor = self.criterion(logits, masks)
-        return loss, logits
+        np_targets: torch.Tensor = targets.to(self.device)
+        np_probs: torch.Tensor
+        hv_logits: torch.Tensor
+        np_probs, hv_logits = self.net(images)
+        # Get horizontal & vertical gradients
+        h_grads, v_grads = utils.get_gradient_hv(hv_logits, h_ch=1, v_ch=0)
+        # Compute combined weighted loss
+        loss: torch.Tensor = self.criterion(np_probs, np_targets,
+                                            hv_logits, h_grads, v_grads)
+        return loss, np_probs, hv_logits
 
     def iterate(self,
                 epoch: int,
@@ -201,7 +207,7 @@ class Trainer(object):
             self.meter.on_batch_begin()
 
             # Forward pass
-            loss, logits = self.forward(images, targets)
+            loss, np_probs, hv_logits = self.forward(images, targets)
             if phase == "train":
                 # Backprop for training only
                 loss.backward()
@@ -213,8 +219,7 @@ class Trainer(object):
                 logits = logits.detach().cpu()
 
                 # ===ON_BATCH_CLOSE===
-                self.meter.on_batch_close(loss=loss,
-                                          logits=logits, targets=targets)
+                self.meter.on_batch_close(loss=loss, np_probs=np_probs, targets=targets)
 
         # ===ON_EPOCH_CLOSE===
         # Collect loss & scores

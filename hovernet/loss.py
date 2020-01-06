@@ -22,43 +22,6 @@ class DiceCoeff(nn.Module):
                 (iflat.sum() + tflat.sum() + smooth))
 
 
-class FocalLoss(nn.Module):
-    # See: https://arxiv.org/abs/1708.02002
-    def __init__(self, gamma):
-        super().__init__()
-        self.gamma = gamma
-
-    def forward(self,
-                logits: torch.Tensor,
-                targets: torch.Tensor) -> torch.Tensor:
-        if not (targets.size() == logits.size()):
-            raise ValueError(f"Target size ({targets.size()}) must be the same "
-                             f"as input size ({logits.size()})")
-        max_val = (-logits).clamp(min=0)
-        loss = logits - logits * targets + max_val + \
-            ((-max_val).exp() + (-logits - max_val).exp()).log()
-        invprobs = F.logsigmoid(-logits * (targets * 2.0 - 1.0))
-        loss = (invprobs * self.gamma).exp() * loss
-        return loss.mean()
-
-
-# Custom loss function combining Focal loss and Dice loss
-class MixedLoss(nn.Module):
-    def __init__(self, alpha, gamma):
-        super().__init__()
-        self.alpha = alpha
-        self.focal_loss = FocalLoss(gamma)
-        self.dice_coeff = DiceCoeff()
-
-    def forward(self,
-                logits: torch.Tensor,
-                targets: torch.Tensor) -> torch.Tensor:
-        loss = (self.alpha * self.focal_loss(logits, targets) -
-                torch.log(self.dice_coeff(logits, targets)))
-
-        return loss.mean()
-
-
 class _NPBranchLoss(nn.Module):
     def __init__(self):
         super(_NPBranchLoss, self).__init__()
@@ -91,8 +54,9 @@ class HoverLoss(nn.Module):
         self.np_loss = _NPBranchLoss()
         self.hv_loss = _HVBranchLoss()
 
-    def forward(self, np_probs, np_targets,
+    def forward(self, np_logits, np_targets,
                 hv_logits, h_grads, v_grads,
-                weights) -> torch.Tensor:
-        loss = self.np_loss * weights[0] + self.hv_loss * weights[1]
+                weights=(1, 1)) -> torch.Tensor:
+        loss = (self.np_loss(np_logits, np_targets) * weights[0] +
+                self.hv_loss(hv_logits, h_grads, v_grads) * weights[1])
         return loss
