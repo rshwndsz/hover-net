@@ -61,34 +61,32 @@ class Meter(object):
 
     def on_batch_close(self,
                        loss: torch.Tensor,
-                       logits: torch.Tensor,
+                       np_probs: torch.Tensor,
                        targets: torch.Tensor,):
 
         # Get predictions and probabilities from raw logits
-        probs: torch.Tensor = torch.sigmoid(logits)
-        preds: torch.Tensor = utils.predict(probs, self.base_threshold)
+        np_preds: torch.Tensor = utils.predict(np_probs, self.base_threshold)
 
         # Assertion for shapes
-        if not (preds.shape == targets.shape):
-            raise ValueError(f"Shape of preds: {preds.shape} must be the same "
+        if not (np_preds.shape == targets.shape):
+            raise ValueError(f"Shape of np_preds: {np_preds.shape} must be the same "
                              f"as that of targets: {targets.shape}.")
 
         # Add loss to list
         self.metrics['loss'].append(loss)
 
         # Calculate and add to metric lists
-        dice: torch.Tensor = metrics.dice_score(probs, targets,
-                                                self.base_threshold)
+        dice: torch.Tensor = metrics.dice_score(np_preds, targets)
         self.metrics['dice'].append(dice)
 
-        iou: torch.Tensor = metrics.iou_score(preds, targets)
+        iou: torch.Tensor = metrics.iou_score(np_preds, targets)
         self.metrics['iou'].append(iou)
 
-        acc: torch.Tensor = metrics.accuracy_score(preds, targets)
+        acc: torch.Tensor = metrics.accuracy_score(np_preds, targets)
         self.metrics['acc'].append(acc)
 
         # <<< Change: Hardcoded for binary segmentation
-        prec: torch.Tensor = metrics.precision_score(preds, targets)[1]
+        prec: torch.Tensor = metrics.precision_score(np_preds, targets)[1]
         self.metrics['prec'].append(prec)
 
     def on_epoch_close(self):

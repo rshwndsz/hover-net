@@ -10,20 +10,16 @@ from hovernet import utils
 logger = logging.getLogger(__name__)
 
 
-def dice_score(probs: torch.Tensor,
-               targets: torch.Tensor,
-               threshold: float = 0.5) -> torch.Tensor:
+def dice_score(preds: torch.Tensor,
+               targets: torch.Tensor) -> torch.Tensor:
     """Calculate Sorenson-Dice coefficient
 
     Parameters
     ----------
-    probs : torch.Tensor
-        Probabilities
+    preds : torch.Tensor
+        Predictions
     targets : torch.Tensor
         Ground truths
-    threshold : float
-        probs > threshold => 1
-        probs <= threshold => 0
 
     Returns
     -------
@@ -37,15 +33,13 @@ def dice_score(probs: torch.Tensor,
 
     batch_size: int = targets.shape[0]
     with torch.no_grad():
-        # Shape: [N, C, H, W]targets
-        probs = probs.view(batch_size, -1)
+        # Shape: [N, C, H, W]
+        p = preds.view(batch_size, -1)
         targets = targets.view(batch_size, -1)
         # Shape: [N, C*H*W]
-        if not (probs.shape == targets.shape):
-            raise ValueError(f"Shape of probs: {probs.shape} must be the same"
+        if not (preds.shape == targets.shape):
+            raise ValueError(f"Shape of preds: {preds.shape} must be the same"
                              f"as that of targets: {targets.shape}.")
-        # Only 1's and 0's in p & t
-        p = utils.predict(probs, threshold)
         t = utils.predict(targets, 0.5)
         # Shape: [N, 1]
         dice = 2 * (p * t).sum(-1) / ((p + t).sum(-1))
