@@ -1,5 +1,9 @@
 # Hover-Net
 
+This project attempts to reproduce the architecture specified in the paper  
+Graham, Simon, et al. ["Hover-Net: Simultaneous segmentation and classification of nuclei in multi-tissue histology images."](https://arxiv.org/abs/1812.06499) Medical Image Analysis 58 (2019): 101563  
+in PyTorch.
+
 ## Installation
 
 Start by cloning the repository
@@ -55,7 +59,7 @@ Install packages not available through conda using pip
 
 ## Setup
 
-Get the [Kidney](https://monuseg.grand-challenge.org/Data/) dataset by running the download script
+Get the "Multi-organ dataset by Neeraj Kumar et.al" from [https://monuseg.grand-challenge.org/Data/](https://monuseg.grand-challenge.org/Data/) or download a cropped (to 256x256) version using
 
 ```console
 (hovernet-env) $ ./install.sh
