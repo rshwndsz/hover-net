@@ -1,5 +1,7 @@
 # Hover-Net
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1QdMKJdhCyy9P9bwiLpcB5MhlkxRNnCYj?usp=sharing)
+
 This project attempts to reproduce the architecture specified in the paper  
 Graham, Simon, et al. ["Hover-Net: Simultaneous segmentation and classification of nuclei in multi-tissue histology images."](https://arxiv.org/abs/1812.06499) Medical Image Analysis 58 (2019): 101563  
 in PyTorch.
