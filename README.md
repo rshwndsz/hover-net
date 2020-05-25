@@ -4,7 +4,11 @@
 
 This project attempts to reproduce the architecture specified in the paper  
 Graham, Simon, et al. ["Hover-Net: Simultaneous segmentation and classification of nuclei in multi-tissue histology images."](https://arxiv.org/abs/1812.06499) Medical Image Analysis 58 (2019): 101563  
-in PyTorch.
+in PyTorch and is currently a **work in progress**.
+
+The most up-to-date version is currently in the Colab notebook. 
+
+Use the steps below to get the code on your local machine.
 
 ## Installation
 
